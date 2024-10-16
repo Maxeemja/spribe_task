@@ -1,0 +1,64 @@
+<div class="form-card">
+  <form [formGroup]="form">
+    <div class="form-group">
+      <label for="country">Country:</label>
+      <input
+        id="country"
+        formControlName="country"
+        [attr.list]="'countries-' + form"
+        [disabled]="isSubmitting"
+        class="form-control"
+      />
+      <datalist [id]="'countries-' + form">
+        <option *ngFor="let country of countries" [value]="country"></option>
+      </datalist>
+
+      <div
+        class="invalid-feedback"
+        *ngIf="form.get('country')?.invalid && form.get('country')?.touched"
+        appTooltip="Please provide a correct Country"
+      >
+        Invalid country
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label for="username">Username:</label>
+      <input
+        id="username"
+        formControlName="username"
+        [disabled]="isSubmitting"
+        class="form-control"
+      />
+      <div
+        class="invalid-feedback"
+        *ngIf="form.get('username')?.invalid && form.get('username')?.touched"
+        appTooltip="Please provide a correct Username"
+      >
+        Invalid username
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label for="birthday">Birthday:</label>
+      <input
+        id="birthday"
+        type="date"
+        formControlName="birthday"
+        [disabled]="isSubmitting"
+        class="form-control"
+      />
+      <div
+        class="invalid-feedback"
+        *ngIf="form.get('birthday')?.invalid && form.get('birthday')?.touched"
+        appTooltip="Please provide a correct Birthday"
+      >
+        Invalid birthday
+      </div>
+    </div>
+
+    <button class="btn-remove" (click)="removeCard()" [disabled]="isSubmitting">
+      X
+    </button>
+  </form>
+</div>
