@@ -1,3 +1,3 @@
-## Starting the App
-
-Run `npm i` to install dependencies first, and then run `ng s` to start the app.
+Теcтове завдання виконане Грицюком Максимом
+Test Assignment for the Angular Developer Position
+для Spribe 17.10.24
