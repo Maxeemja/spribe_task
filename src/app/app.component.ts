@@ -1,22 +1,7 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
-import {
-  FormBuilder,
-  FormGroup,
-  Validators,
-  AsyncValidatorFn,
-  AbstractControl,
-  ValidationErrors,
-} from '@angular/forms';
-import { HttpClient } from '@angular/common/http';
-import { Country } from './shared/enum/country';
-import { Subscription, Observable, of } from 'rxjs';
-import {
-  map,
-  catchError,
-  debounceTime,
-  distinctUntilChanged,
-  switchMap,
-} from 'rxjs/operators';
+import { Component, OnDestroy, OnInit } from '@angular/core';
+import { FormGroup } from '@angular/forms';
+import { Subscription } from 'rxjs';
+import { FormsService } from './services/forms.service'; // Import the service
 
 @Component({
   selector: 'app-root',
@@ -31,7 +16,7 @@ export class AppComponent implements OnInit, OnDestroy {
   timerInterval: any;
   private formSubscriptions: Subscription[] = [];
 
-  constructor(private fb: FormBuilder, private http: HttpClient) {}
+  constructor(private formService: FormsService) {} // Inject the service
 
   ngOnInit() {
     this.addFormCard();
@@ -43,12 +28,7 @@ export class AppComponent implements OnInit, OnDestroy {
 
   addFormCard() {
     if (this.formCards.length < 10) {
-      const newForm = this.fb.group({
-        country: ['', [Validators.required, this.countryValidator]],
-        username: ['', [Validators.required], [this.usernameValidator()]],
-        birthday: ['', [Validators.required, this.birthdayValidator]],
-      });
-
+      const newForm = this.formService.createFormCard(); // Use the service to create the form
       const subscription = newForm.statusChanges.subscribe(() => {
         this.updateInvalidFormsCount();
       });
@@ -70,40 +50,8 @@ export class AppComponent implements OnInit, OnDestroy {
 
   updateInvalidFormsCount() {
     this.invalidFormsCount = this.formCards.filter(
-      (form) => form.invalid || form.pending
+      (form) => form.invalid || form.pending,
     ).length;
-  }
-
-  countryValidator(control: AbstractControl): ValidationErrors | null {
-    return Object.values(Country).includes(control.value)
-      ? null
-      : { invalidCountry: true };
-  }
-
-  usernameValidator(): AsyncValidatorFn {
-    return (control: AbstractControl): Observable<ValidationErrors | null> => {
-      return of(control.value).pipe(
-        debounceTime(300),
-        distinctUntilChanged(),
-        switchMap((value) =>
-          this.http
-            .post<{ isAvailable: boolean }>('/api/checkUsername', {
-              username: value,
-            })
-            .pipe(
-              map((response) =>
-                response.isAvailable ? null : { usernameUnavailable: true }
-              ),
-              catchError(() => of({ serverError: true }))
-            )
-        )
-      );
-    };
-  }
-
-  birthdayValidator(control: AbstractControl): ValidationErrors | null {
-    const selectedDate = new Date(control.value);
-    return selectedDate <= new Date() ? null : { futureDate: true };
   }
 
   submitForms() {
@@ -129,18 +77,17 @@ export class AppComponent implements OnInit, OnDestroy {
 
   sendForms() {
     clearInterval(this.timerInterval);
-    const formValues = this.formCards.map((form) => form.getRawValue());
-    this.http.post('/api/submitForm', formValues).subscribe(
-      () => {
+    this.formService.submitForms(this.formCards).subscribe({
+      next: () => {
         this.resetForms();
       },
-      (error) => {
+      error: (error: Error) => {
         console.error('Error submitting forms:', error);
         this.isSubmitting = false;
         this.timer = null;
         this.formCards.forEach((form) => form.enable());
-      }
-    );
+      },
+    });
   }
 
   resetForms() {

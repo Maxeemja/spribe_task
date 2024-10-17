@@ -1,41 +1,40 @@
 <div class="container">
   <h1>Multi-form Application</h1>
-
-  <div *ngFor="let form of formCards; let i = index">
-    <app-form-card [form]="form" (remove)="removeFormCard(i)"> </app-form-card>
-  </div>
-
   <div class="form-controls">
     <button
-      class="btn btn-add-form"
       (click)="addFormCard()"
       [disabled]="formCards.length >= 10 || isSubmitting"
+      class="btn btn-add-form"
     >
       Add Form
     </button>
 
     <button
-      class="btn btn-submit"
       (click)="submitForms()"
       *ngIf="!isSubmitting"
       [disabled]="invalidFormsCount > 0 || formCards.length === 0"
+      class="btn btn-submit"
     >
       Submit all forms
     </button>
     <button
-      class="btn btn-cancel"
       (click)="cancelSubmit()"
       *ngIf="isSubmitting"
+      class="btn btn-cancel"
     >
       Cancel
     </button>
 
-    <span class="invalid-forms-count" *ngIf="invalidFormsCount > 0">
+    <span *ngIf="invalidFormsCount > 0" class="invalid-forms-count">
       Invalid forms: {{ invalidFormsCount }}
     </span>
 
-    <span class="timer" *ngIf="timer !== null">
+    <span *ngIf="timer !== null" class="timer">
       Time remaining: {{ timer }}s
     </span>
+  </div>
+  
+  <div *ngFor="let form of formCards; let i = index">
+    <app-form-card (remove)="removeFormCard(i)" [form]="form"></app-form-card>
   </div>
 </div>

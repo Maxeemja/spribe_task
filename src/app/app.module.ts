@@ -12,10 +12,11 @@ import { AppComponent } from './app.component';
 import { ValidateInputDirective } from './directives/validate-input.directive';
 import { MockBackendInterceptor } from './shared/mock-backend/mock-backend.interceptor';
 import { FormCardComponent } from './components/form-card/form-card.component';
+import { CommonModule } from '@angular/common';
 
 @NgModule({
   declarations: [AppComponent, FormCardComponent, ValidateInputDirective],
-  imports: [BrowserModule, ReactiveFormsModule, HttpClientModule],
+  imports: [BrowserModule, CommonModule, ReactiveFormsModule, HttpClientModule],
   providers: [
     provideHttpClient(withInterceptorsFromDi()),
     {
