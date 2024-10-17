@@ -6,8 +6,12 @@
         id="country"
         formControlName="country"
         [attr.list]="'countries-' + form"
-        [disabled]="isSubmitting"
         class="form-control"
+        [appTooltip]="
+          form.get('country')?.invalid && form.get('country')?.touched
+            ? 'Please provide a correct Country'
+            : ''
+        "
       />
       <datalist [id]="'countries-' + form">
         <option *ngFor="let country of countries" [value]="country"></option>
@@ -16,7 +20,6 @@
       <div
         class="invalid-feedback"
         *ngIf="form.get('country')?.invalid && form.get('country')?.touched"
-        appTooltip="Please provide a correct Country"
       >
         Invalid country
       </div>
@@ -27,15 +30,21 @@
       <input
         id="username"
         formControlName="username"
-        [disabled]="isSubmitting"
         class="form-control"
+        [appTooltip]="
+          form.get('username')?.invalid && form.get('username')?.touched
+            ? 'Please provide a correct Username'
+            : ''
+        "
       />
       <div
         class="invalid-feedback"
         *ngIf="form.get('username')?.invalid && form.get('username')?.touched"
-        appTooltip="Please provide a correct Username"
       >
         Invalid username
+      </div>
+      <div *ngIf="form.get('username')?.pending">
+        Checking username availability...
       </div>
     </div>
 
@@ -45,19 +54,26 @@
         id="birthday"
         type="date"
         formControlName="birthday"
-        [disabled]="isSubmitting"
         class="form-control"
+        [appTooltip]="
+          form.get('birthday')?.invalid && form.get('birthday')?.touched
+            ? 'Please provide a correct Birthday'
+            : ''
+        "
       />
       <div
         class="invalid-feedback"
         *ngIf="form.get('birthday')?.invalid && form.get('birthday')?.touched"
-        appTooltip="Please provide a correct Birthday"
       >
         Invalid birthday
       </div>
     </div>
 
-    <button class="btn-remove" (click)="removeCard()" [disabled]="isSubmitting">
+    <button
+      class="btn-remove"
+      (click)="removeCard()"
+      [disabled]="form.disabled"
+    >
       X
     </button>
   </form>

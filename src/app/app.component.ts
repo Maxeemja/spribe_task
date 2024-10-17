@@ -1,57 +1,77 @@
-import { Component } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import {
-  AbstractControl,
   FormBuilder,
   FormGroup,
-  ValidationErrors,
   Validators,
+  AsyncValidatorFn,
+  AbstractControl,
+  ValidationErrors,
 } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { Country } from './shared/enum/country';
-import { Observable, map, catchError, of } from 'rxjs';
-import { CheckUserResponseData } from './shared/interface/responses';
+import { Subscription, Observable, of } from 'rxjs';
+import {
+  map,
+  catchError,
+  debounceTime,
+  distinctUntilChanged,
+  switchMap,
+} from 'rxjs/operators';
 
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.scss'],
 })
-export class AppComponent {
+export class AppComponent implements OnInit, OnDestroy {
   formCards: FormGroup[] = [];
   invalidFormsCount = 0;
   isSubmitting = false;
   timer: number | null = null;
   timerInterval: any;
+  private formSubscriptions: Subscription[] = [];
 
-  constructor(private fb: FormBuilder, private http: HttpClient) {
+  constructor(private fb: FormBuilder, private http: HttpClient) {}
+
+  ngOnInit() {
     this.addFormCard();
   }
 
-  checkUser(username: string): Observable<CheckUserResponseData> {
-    return this.http.post<CheckUserResponseData>('/api/checkUsername1', {
-      username,
-    });
+  ngOnDestroy() {
+    this.formSubscriptions.forEach((sub) => sub.unsubscribe());
   }
 
   addFormCard() {
     if (this.formCards.length < 10) {
       const newForm = this.fb.group({
         country: ['', [Validators.required, this.countryValidator]],
-        username: [
-          '',
-          [Validators.required],
-          [this.usernameValidator.bind(this)],
-        ],
+        username: ['', [Validators.required], [this.usernameValidator()]],
         birthday: ['', [Validators.required, this.birthdayValidator]],
       });
+
+      const subscription = newForm.statusChanges.subscribe(() => {
+        this.updateInvalidFormsCount();
+      });
+
+      this.formSubscriptions.push(subscription);
       this.formCards.push(newForm);
       this.updateInvalidFormsCount();
     }
   }
 
   removeFormCard(index: number) {
+    if (this.formSubscriptions[index]) {
+      this.formSubscriptions[index].unsubscribe();
+      this.formSubscriptions.splice(index, 1);
+    }
     this.formCards.splice(index, 1);
     this.updateInvalidFormsCount();
+  }
+
+  updateInvalidFormsCount() {
+    this.invalidFormsCount = this.formCards.filter(
+      (form) => form.invalid || form.pending
+    ).length;
   }
 
   countryValidator(control: AbstractControl): ValidationErrors | null {
@@ -60,19 +80,25 @@ export class AppComponent {
       : { invalidCountry: true };
   }
 
-  usernameValidator(
-    control: AbstractControl
-  ): Observable<ValidationErrors | null> {
-    return this.http
-      .post<{ isAvailable: boolean }>('/api/checkUsername', {
-        username: control.value,
-      })
-      .pipe(
-        map((response) =>
-          response.isAvailable ? null : { usernameUnavailable: true }
-        ),
-        catchError(() => of({ serverError: true }))
+  usernameValidator(): AsyncValidatorFn {
+    return (control: AbstractControl): Observable<ValidationErrors | null> => {
+      return of(control.value).pipe(
+        debounceTime(300),
+        distinctUntilChanged(),
+        switchMap((value) =>
+          this.http
+            .post<{ isAvailable: boolean }>('/api/checkUsername', {
+              username: value,
+            })
+            .pipe(
+              map((response) =>
+                response.isAvailable ? null : { usernameUnavailable: true }
+              ),
+              catchError(() => of({ serverError: true }))
+            )
+        )
       );
+    };
   }
 
   birthdayValidator(control: AbstractControl): ValidationErrors | null {
@@ -80,15 +106,10 @@ export class AppComponent {
     return selectedDate <= new Date() ? null : { futureDate: true };
   }
 
-  updateInvalidFormsCount() {
-    this.invalidFormsCount = this.formCards.filter(
-      (form) => form.invalid
-    ).length;
-  }
-
   submitForms() {
     if (this.formCards.every((form) => form.valid)) {
       this.isSubmitting = true;
+      this.formCards.forEach((form) => form.disable());
       this.timer = 5;
       this.timerInterval = setInterval(() => {
         this.timer!--;
@@ -103,23 +124,31 @@ export class AppComponent {
     this.isSubmitting = false;
     this.timer = null;
     clearInterval(this.timerInterval);
+    this.formCards.forEach((form) => form.enable());
   }
 
   sendForms() {
     clearInterval(this.timerInterval);
-    const formValues = this.formCards.map((form) => form.value);
+    const formValues = this.formCards.map((form) => form.getRawValue());
     this.http.post('/api/submitForm', formValues).subscribe(
       () => {
-        this.formCards = [];
-        this.addFormCard();
-        this.isSubmitting = false;
-        this.timer = null;
+        this.resetForms();
       },
       (error) => {
         console.error('Error submitting forms:', error);
         this.isSubmitting = false;
         this.timer = null;
+        this.formCards.forEach((form) => form.enable());
       }
     );
+  }
+
+  resetForms() {
+    this.formSubscriptions.forEach((sub) => sub.unsubscribe());
+    this.formSubscriptions = [];
+    this.formCards = [];
+    this.addFormCard();
+    this.isSubmitting = false;
+    this.timer = null;
   }
 }

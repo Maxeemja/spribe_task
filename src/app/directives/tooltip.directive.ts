@@ -37,11 +37,13 @@ export class TooltipDirective {
     const hostPos = this.el.nativeElement.getBoundingClientRect();
     const tooltipPos = this.tooltip!.getBoundingClientRect();
 
-    const top = hostPos.bottom + 'px';
+    const top = hostPos.top - tooltipPos.height - 10 + 'px';
     const left = hostPos.left + (hostPos.width - tooltipPos.width) / 2 + 'px';
 
     this.renderer.setStyle(this.tooltip, 'top', top);
     this.renderer.setStyle(this.tooltip, 'left', left);
+    this.renderer.setStyle(this.tooltip, 'position', 'absolute');
+    this.renderer.setStyle(this.tooltip, 'z-index', '1000');
   }
 
   private hideTooltip() {

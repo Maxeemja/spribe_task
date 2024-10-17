@@ -2,12 +2,7 @@
   <h1>Multi-form Application</h1>
 
   <div *ngFor="let form of formCards; let i = index">
-    <app-form-card
-      [form]="form"
-      [isSubmitting]="isSubmitting"
-      (remove)="removeFormCard(i)"
-    >
-    </app-form-card>
+    <app-form-card [form]="form" (remove)="removeFormCard(i)"> </app-form-card>
   </div>
 
   <div class="form-controls">
@@ -23,7 +18,7 @@
       class="btn btn-submit"
       (click)="submitForms()"
       *ngIf="!isSubmitting"
-      [disabled]="invalidFormsCount > 0"
+      [disabled]="invalidFormsCount > 0 || formCards.length === 0"
     >
       Submit all forms
     </button>

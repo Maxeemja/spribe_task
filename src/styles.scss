@@ -7,24 +7,3 @@ body {
   line-height: 1.6;
   padding: 20px;
 }
-
-.tooltip {
-  position: absolute;
-  background-color: #333;
-  color: white;
-  padding: 5px 10px;
-  border-radius: 4px;
-  font-size: 14px;
-  z-index: 1000;
-}
-
-.tooltip::before {
-  content: "";
-  position: absolute;
-  top: -5px;
-  left: 50%;
-  transform: translateX(-50%);
-  border-width: 0 5px 5px 5px;
-  border-style: solid;
-  border-color: transparent transparent #333 transparent;
-}

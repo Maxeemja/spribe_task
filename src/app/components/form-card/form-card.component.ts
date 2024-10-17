@@ -9,7 +9,6 @@ import { Country } from '../../shared/enum/country';
 })
 export class FormCardComponent {
   @Input() form!: FormGroup;
-  @Input() isSubmitting = false;
   @Output() remove = new EventEmitter<void>();
 
   countries = Object.values(Country);
