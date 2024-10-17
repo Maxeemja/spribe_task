@@ -33,8 +33,11 @@
       Time remaining: {{ timer }}s
     </span>
   </div>
-  
-  <div *ngFor="let form of formCards; let i = index">
-    <app-form-card (remove)="removeFormCard(i)" [form]="form"></app-form-card>
+
+  <div class="form-cards-container">
+    <div *ngFor="let form of formCards; let i = index">
+      <app-form-card (remove)="removeFormCard(i)" [form]="form"></app-form-card>
+    </div>
   </div>
+
 </div>
