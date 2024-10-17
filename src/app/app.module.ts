@@ -9,12 +9,12 @@ import {
 } from '@angular/common/http';
 
 import { AppComponent } from './app.component';
-import { TooltipDirective } from './directives/tooltip.directive';
+import { ValidateInputDirective } from './directives/validate-input.directive';
 import { MockBackendInterceptor } from './shared/mock-backend/mock-backend.interceptor';
 import { FormCardComponent } from './components/form-card/form-card.component';
 
 @NgModule({
-  declarations: [AppComponent, FormCardComponent, TooltipDirective],
+  declarations: [AppComponent, FormCardComponent, ValidateInputDirective],
   imports: [BrowserModule, ReactiveFormsModule, HttpClientModule],
   providers: [
     provideHttpClient(withInterceptorsFromDi()),

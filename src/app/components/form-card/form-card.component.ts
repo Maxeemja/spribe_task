@@ -16,4 +16,27 @@ export class FormCardComponent {
   removeCard() {
     this.remove.emit();
   }
+
+  getErrorMessage(controlName: string): string {
+    const control = this.form.get(controlName);
+    if (control?.invalid && (control.dirty || control.touched)) {
+      if (control.errors?.['required']) {
+        return `${
+          controlName.charAt(0).toUpperCase() + controlName.slice(1)
+        } is required.`;
+      }
+
+      
+      if (control.errors?.['invalidCountry']) {
+        return 'Please select a valid country.';
+      }
+      if (control.errors?.['usernameUnavailable']) {
+        return 'This username is not available.';
+      }
+      if (control.errors?.['futureDate']) {
+        return 'Birthday cannot be in the future.';
+      }
+    }
+    return '';
+  }
 }
